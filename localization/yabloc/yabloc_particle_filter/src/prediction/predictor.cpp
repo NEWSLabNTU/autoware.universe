@@ -251,6 +251,36 @@ void Predictor::on_timer()
   //
   predicted_particles_pub_->publish(particle_array);
   //
+
+  // -------------------------------------------
+  // Calculate the variance of particle filter
+  //
+  geometry_msgs::msg::Pose mean = mean_pose(particle_array);
+  double var_x = 0, var_y = 0, var_z = 0;
+  double sum_weight = std::accumulate(
+                                      particle_array.particles.begin(), particle_array.particles.end(), 0.0,
+                                      [](double weight, const Particle & particle) { return weight + particle.weight; });
+
+  for (auto & particle : particle_array.particles) {
+      var_x += particle.weight * std::pow(particle.pose.position.x - mean.position.x, 2);
+      var_y += particle.weight * std::pow(particle.pose.position.y - mean.position.y, 2);
+      var_z += particle.weight * std::pow(particle.pose.position.z - mean.position.z, 2);
+  }
+  var_x /= sum_weight;
+  var_y /= sum_weight;
+  var_z /= sum_weight;
+
+  // Publish status as string
+  String msg;
+  std::stringstream ss;
+  ss << "-- Particle Variance --" << std::endl;
+  ss << "var_x: " << var_x << std::endl;
+  ss << "var_y: " << var_y << std::endl;
+  ss << "var_z: " << var_z << std::endl;
+  msg.data = ss.str();
+  pub_string_->publish(msg);
+  // -------------------------------------------
+
   publish_mean_pose(get_mean_pose(particle_array), this->now());
   // If visualizer exists,
   if (visualizer_ptr_) {
