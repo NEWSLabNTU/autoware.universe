@@ -23,6 +23,14 @@ rclcpp_components_register_node(${PROJECT_NAME}_lib
   EXECUTABLE ${PROJECT_NAME}_node
 )
 
+find_package(grid_map_core REQUIRED)
+find_package(grid_map_ros REQUIRED)
+
+include_directories(
+  ${grid_map_core_INCLUDE_DIRS}
+  ${grid_map_ros_INCLUDE_DIRS}
+)
+
 if(${rosidl_cmake_VERSION} VERSION_LESS 2.5.0)
     rosidl_target_interfaces(${PROJECT_NAME}_lib
     ${PROJECT_NAME} "rosidl_typesupport_cpp")
